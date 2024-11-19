@@ -15,11 +15,11 @@
 			</el-row>
 
 			<el-form-item label="文章描述" prop="description">
-				<mavon-editor v-model="form.description"/>
+				<mavon-editor v-model="form.description" @imgAdd="imgAddTwo" ref="mdedittwo"/>
 			</el-form-item>
 
 			<el-form-item label="文章正文" prop="content">
-				<mavon-editor v-model="form.content"/>
+				<mavon-editor v-model="form.content" @imgAdd="imgAdd" ref="mdedit"/>
 			</el-form-item>
 
 			<el-row :gutter="20">
@@ -104,7 +104,7 @@
 
 <script>
 	import Breadcrumb from "@/components/Breadcrumb";
-	import {getCategoryAndTag, saveBlog, getBlogById, updateBlog} from '@/api/blog'
+	import {getCategoryAndTag, saveBlog, getBlogById, updateBlog,uploadPic} from '@/api/blog'
 
 	export default {
 		name: "WriteBlog",
@@ -153,6 +153,32 @@
 			}
 		},
 		methods: {
+			// 文章描述：将图片上传到服务器，返回地址替换到md中
+            imgAddTwo(pos, $file) {
+                var _this = this
+                var formdata = new FormData();
+                formdata.append('image', $file);
+                uploadPic(formdata).then((response) => {
+                    // 第二步.将返回的url替换到文本原位置![...](0) -> ![...](url)
+                    if (response.code === 200) {
+                        var url = response.msg;
+                        _this.$refs.mdedittwo.$img2Url(pos,url)
+                    }
+                })
+            },
+			// 文章正文：将图片上传到服务器，返回地址替换到md中
+            imgAdd(pos, $file) {
+                var _this = this
+                var formdata = new FormData();
+                formdata.append('image', $file);
+                uploadPic(formdata).then((response) => {
+                    // 第二步.将返回的url替换到文本原位置![...](0) -> ![...](url)
+                    if (response.code === 200) {
+                        var url = response.msg;
+                        _this.$refs.mdedit.$img2Url(pos,url)
+                    }
+                })
+            },
 			getData() {
 				getCategoryAndTag().then(res => {
 					this.categoryList = res.data.categories

@@ -3,14 +3,13 @@ module.exports = {
 	 * @type {string}
 	 * @description page title
 	 */
-	title: 'Naccl\'s Blog Admin',
+	title: 'Swz\'s Blog Admin',
 
 	/**
 	 * @type {string}
 	 * @description logo URL
 	 */
-	logo: 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png',
-
+	logo: 'https://swzbk-1330757958.cos.ap-beijing.myqcloud.com/images/b974d708-377b-41ec-9a21-2771d3fffeea.jpeg',
 	/**
 	 * @type {boolean} true | false
 	 * @description Whether fix the header

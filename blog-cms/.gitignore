@@ -20,3 +20,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+#忽略配置文件
+src/util/request.js

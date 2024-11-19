@@ -37,6 +37,18 @@ export function saveBlog(blog) {
 	})
 }
 
+//swz 上传图片
+export function uploadPic(formdata) {
+	return axios({
+		url: 'upload',
+		method: 'POST',
+		Headers: {
+			'Content-Type': 'multipart/form-data'
+		},
+		data: formdata
+	})
+}
+
 export function updateTop(id, top) {
 	return axios({
 		url: 'blog/top',
