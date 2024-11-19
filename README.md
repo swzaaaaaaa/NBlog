@@ -21,11 +21,10 @@ Spring Boot + Vue「前后端分离，人不分离」博客系统
 
 自用博客，长期维护，欢迎勘误
 
-预览地址：
+访问地址：
 
-前台：[https://naccl.top](https://naccl.top)
+前台：[http://swzbk.site](http://swzbk.site)
 
-后台：[https://admin.naccl.top](https://admin.naccl.top)
 
 
 
