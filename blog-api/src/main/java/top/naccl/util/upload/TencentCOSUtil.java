@@ -20,15 +20,15 @@ import java.util.UUID;
 public class TencentCOSUtil {
 
     // COS的SecretId
-    private static String secretId = "AKIDLdqwvoZAZt6EiBUfvFVwfSD5IOaux4EK";
+    private static String secretId = "xxxxxxx";
     // COS的SecretKey
-    private static String secretKey = "BKSezCLW4cHPpGsUBkAiQ0dC42uiYVZl";
+    private static String secretKey = "xxxxxxxxxx";
     //文件上传后访问路径的根路径，后面要最佳文件名字与类型
-    private static String rootSrc = "https://swzbk-1330757958.cos.ap-beijing.myqcloud.com/";
+    private static String rootSrc = "xxxxxxx/";
     //上传的存储桶的地域，可参考根路径https://qq-test-1303******.cos.地域.myqcloud.com,此参数在COS的后台能查询。
-    private static String bucketAddr = "ap-beijing";
+    private static String bucketAddr = "xxxxx";
     //存储桶的名字，是自己在存储空间自己创建的，我创建的名字是：qq-test-1303******
-    private static String bucketName = "swzbk-1330757958";
+    private static String bucketName = "xxxxxx";
 
     /**
      * 1.调用静态方法getCosClient()就会获得COSClient实例
