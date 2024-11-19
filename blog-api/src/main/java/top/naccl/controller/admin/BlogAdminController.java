@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import top.naccl.annotation.OperationLogger;
 import top.naccl.entity.Blog;
 import top.naccl.entity.Category;
@@ -24,12 +26,12 @@ import top.naccl.service.CategoryService;
 import top.naccl.service.CommentService;
 import top.naccl.service.TagService;
 import top.naccl.util.StringUtils;
+import top.naccl.util.upload.TencentCOSUtil;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @Description: 博客文章后台管理
@@ -48,6 +50,13 @@ public class BlogAdminController {
 	@Autowired
 	CommentService commentService;
 
+	//依赖注入
+	@Autowired
+	private TencentCOSUtil tencentCOSUtil;
+
+
+	final static String PIC_PATH = "static/img/"; //图片存放的相对于项目的相对位置
+
 	/**
 	 * 获取博客文章列表
 	 *
@@ -59,9 +68,9 @@ public class BlogAdminController {
 	 */
 	@GetMapping("/blogs")
 	public Result blogs(@RequestParam(defaultValue = "") String title,
-	                    @RequestParam(defaultValue = "") Integer categoryId,
-	                    @RequestParam(defaultValue = "1") Integer pageNum,
-	                    @RequestParam(defaultValue = "10") Integer pageSize) {
+						@RequestParam(defaultValue = "") Integer categoryId,
+						@RequestParam(defaultValue = "1") Integer pageNum,
+						@RequestParam(defaultValue = "10") Integer pageSize) {
 		String orderBy = "create_time desc";
 		PageHelper.startPage(pageNum, pageSize, orderBy);
 		PageInfo<Blog> pageInfo = new PageInfo<>(blogService.getListByTitleAndCategoryId(title, categoryId));
@@ -269,4 +278,56 @@ public class BlogAdminController {
 			return Result.ok("更新成功");
 		}
 	}
+
+
+	/**
+	 * 上传图片--swz
+	 * 腾讯云cos
+	 */
+	@PostMapping("/upload")
+	public Result upload(MultipartFile image) {
+		//log.info("正在上传，文件名{}",image.getOriginalFilename());
+		String url = tencentCOSUtil.upLoadFile(image);
+		//System.out.println(url);
+		//log.info("文件的Url：{}",url);
+
+		return Result.ok(url);
+
+	}
+
+	/**
+	 *上传图片 --本地版本
+	 */
+//	@PostMapping("/upload")
+//	public Result uploadPic(MultipartHttpServletRequest   multiRequest, HttpServletRequest request){
+//		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); //生成日期格式
+//		String datePrefix = dateFormat.format(new Date()); //生成当前日期作为前缀
+//		String savePath = "src/main/resources/" + PIC_PATH; // 存储路径
+//
+//		File folder = new File(savePath+datePrefix); //生成带当前日期的文件路径
+//
+//		if(!folder.isDirectory()){
+//			folder.mkdirs();
+//		}
+//
+//
+//		String randomName = multiRequest.getFile("image").getOriginalFilename(); //获取图片名
+//		//生成随机数确保唯一性，并加上图片后缀
+//		String saveName = UUID.randomUUID().toString() + randomName.substring(randomName.lastIndexOf("."),randomName.length());
+//		String absolutePath = folder.getAbsolutePath(); //转换成绝对路径
+//
+//		try {
+//			File fileToSave = new File(absolutePath + File.separator + saveName);
+//			multiRequest.getFile("image").transferTo(fileToSave); //图片存储到服务端
+//			String returnPath = request.getScheme() + "://"
+//					+ request.getServerName()+":"+request.getServerPort()
+//					+ "/img/" + datePrefix +"/"+ saveName;
+//
+//			return Result.ok("上传成功",returnPath);
+//
+//		}catch (Exception e){
+//			e.printStackTrace();
+//		}
+//		return Result.error("上传失败");
+//	}
 }
