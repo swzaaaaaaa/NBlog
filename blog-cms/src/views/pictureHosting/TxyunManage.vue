@@ -70,7 +70,7 @@ export default {
 				domain: ''
 			},
 			pathArr: [{value: '', label: '根目录'}],
-			activePath: [''],//默认选中根目录
+			activePath: [''],//默认选中目录--图片目录
 			pathProps: {
 				lazy: true,
 				checkStrictly: true,
@@ -117,7 +117,7 @@ export default {
 		if (txyunConfig) {
 			this.txyunConfig = JSON.parse(txyunConfig)
 			this.txyunConfig.domain = this.txyunConfig.domain.endsWith('/') ? this.txyunConfig.domain : `${this.txyunConfig.domain}/`
-
+			//初始化cos
 			this.cos = new COS({
 				SecretId: this.txyunConfig.secretId,
 				SecretKey: this.txyunConfig.secretKey,
@@ -154,7 +154,7 @@ export default {
 				path = path.endsWith('/') ? path : `${path}/`
 			}
 			this.cos.getBucket({
-				Bucket: txyunConfig.bucketName, /* 必须 */
+				Bucket: txyunConfig.bucketName, /* 必须 */ 
 				Region: txyunConfig.region,     /* 存储桶所在地域，必须字段 */
 				Prefix: path,           /* 非必须 */
 				Delimiter: '/'

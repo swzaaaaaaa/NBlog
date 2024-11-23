@@ -136,18 +136,18 @@ const routes = [
 				component: () => import('@/views/pictureHosting/Setting'),
 				meta: {title: '配置', icon: 'el-icon-setting'}
 			},
-			{
-				path: 'github',
-				name: 'GithubManage',
-				component: () => import('@/views/pictureHosting/GithubManage'),
-				meta: {title: 'GitHub', icon: 'el-icon-folder-opened'}
-			},
-			{
-				path: 'upyun',
-				name: 'UpyunManage',
-				component: () => import('@/views/pictureHosting/UpyunManage'),
-				meta: {title: '又拍云', icon: 'el-icon-folder-opened'}
-			},
+			// {
+			// 	path: 'github',
+			// 	name: 'GithubManage',
+			// 	component: () => import('@/views/pictureHosting/GithubManage'),
+			// 	meta: {title: 'GitHub', icon: 'el-icon-folder-opened'}
+			// },
+			// {
+			// 	path: 'upyun',
+			// 	name: 'UpyunManage',
+			// 	component: () => import('@/views/pictureHosting/UpyunManage'),
+			// 	meta: {title: '又拍云', icon: 'el-icon-folder-opened'}
+			// },
 			{
 				path: 'txyun',
 				name: 'TxyunManage',
