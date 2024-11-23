@@ -18,7 +18,6 @@ import top.naccl.service.UserService;
 import top.naccl.util.HashUtils;
 import top.naccl.util.IpAddressUtils;
 import top.naccl.util.MailUtils;
-import top.naccl.util.QQInfoUtils;
 import top.naccl.util.StringUtils;
 import top.naccl.util.comment.channel.ChannelFactory;
 import top.naccl.util.comment.channel.CommentNotifyChannel;
@@ -297,14 +296,14 @@ public class CommentUtils {
 	 * @param qq      QQ号
 	 * @throws Exception 上传QQ头像时可能抛出的异常
 	 */
-	private void setCommentQQAvatar(Comment comment, String qq) throws Exception {
-		String uploadAvatarUrl = (String) redisService.getValueByHashKey(RedisKeyConstants.QQ_AVATAR_URL_MAP, qq);
-		if (StringUtils.isEmpty(uploadAvatarUrl)) {
-			uploadAvatarUrl = QQInfoUtils.getQQAvatarUrl(qq);
-			redisService.saveKVToHash(RedisKeyConstants.QQ_AVATAR_URL_MAP, qq, uploadAvatarUrl);
-		}
-		comment.setAvatar(uploadAvatarUrl);
-	}
+//	private void setCommentQQAvatar(Comment comment, String qq) throws Exception {
+//		String uploadAvatarUrl = (String) redisService.getValueByHashKey(RedisKeyConstants.QQ_AVATAR_URL_MAP, qq);
+//		if (StringUtils.isEmpty(uploadAvatarUrl)) {
+//			uploadAvatarUrl = QQInfoUtils.getQQAvatarUrl(qq);
+//			redisService.saveKVToHash(RedisKeyConstants.QQ_AVATAR_URL_MAP, qq, uploadAvatarUrl);
+//		}
+//		comment.setAvatar(uploadAvatarUrl);
+//	}
 
 	/**
 	 * URL合法性校验

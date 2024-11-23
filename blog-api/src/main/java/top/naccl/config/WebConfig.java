@@ -6,7 +6,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import top.naccl.config.properties.UploadProperties;
+
 import top.naccl.interceptor.AccessLimitInterceptor;
 
 /**
@@ -18,8 +18,8 @@ import top.naccl.interceptor.AccessLimitInterceptor;
 public class WebConfig implements WebMvcConfigurer {
 	@Autowired
 	AccessLimitInterceptor accessLimitInterceptor;
-	@Autowired
-	UploadProperties uploadProperties;
+//	@Autowired
+//	UploadProperties uploadProperties;
 
 	/**
 	 * 跨域请求
@@ -52,6 +52,6 @@ public class WebConfig implements WebMvcConfigurer {
 	 */
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler(uploadProperties.getAccessPath()).addResourceLocations(uploadProperties.getResourcesLocations());
+		//registry.addResourceHandler(uploadProperties.getAccessPath()).addResourceLocations(uploadProperties.getResourcesLocations());
 	}
 }
