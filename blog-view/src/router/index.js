@@ -62,6 +62,12 @@ const routes = [
 				name: 'about',
 				component: () => import('@/views/about/About'),
 				meta: {title: '关于我'}
+			},
+			{
+				path: '/deepseek',
+				name: 'deepseek',
+				component: () => import('@/views/deepseek/Deepseek'),
+				meta: {title: '深度探索'}
 			}
 		]
 	}
