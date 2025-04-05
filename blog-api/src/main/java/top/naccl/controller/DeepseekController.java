@@ -11,17 +11,14 @@ import org.springframework.http.codec.ServerSentEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import top.naccl.entity.ChatMessage;
 import top.naccl.mapper.ChatMessageMapper;
 import top.naccl.model.dto.ChatMessageDTO;
-
-import javax.servlet.http.HttpSession;
 
 
 @RestController
@@ -33,54 +30,6 @@ public class DeepseekController {
 
     @Autowired
     private ChatMessageMapper chatMessageMapper;
-//    @PostMapping("/deepseek")
-//    public DeepSeekResponse handleDeepSeekRequest(@RequestBody DeepSeekRequest request) throws IOException {
-//        OkHttpClient client = new OkHttpClient.Builder()
-//                .readTimeout(100, TimeUnit.SECONDS)  // 增加读取超时时间
-//                .build();
-//
-//        MediaType JSON = MediaType.get("application/json; charset=utf-8");
-//        String json = "{\"model\": \"deepseek-chat\", \"messages\": [{\"role\": \"user\", \"content\": \"" + request.getPrompt() + "\"}]}";
-//
-//        // 使用 okhttp3.RequestBody 创建请求体
-//        okhttp3.RequestBody body = okhttp3.RequestBody.create(JSON, json.getBytes());
-//
-//        Request apiRequest = new Request.Builder()
-//                .url(DEEPSEEK_API_URL)
-//                .post(body)
-//                .addHeader("Authorization", "Bearer " + DEEPSEEK_API_KEY)
-//                .addHeader("Content-Type", "application/json")
-//                .build();
-//
-//        try (Response response = client.newCall(apiRequest).execute()) {
-//            if (!response.isSuccessful()) {
-//                return new DeepSeekResponse("请求失败：" + response.code());
-//            }
-//
-//            return handleNormalResponse(response);
-//
-//        } catch (IOException e) {
-//            return new DeepSeekResponse("请求异常：" + e.getMessage());
-//        }
-//    }
-//
-//    private DeepSeekResponse handleNormalResponse(Response response) throws IOException {
-//        try (ResponseBody body = response.body()) {
-//            if (body == null) {
-//                return new DeepSeekResponse("空响应");
-//            }
-//
-//            String responseData = body.string();
-//            JsonNode jsonNode = objectMapper.readTree(responseData);
-//            if (jsonNode.has("choices") && !jsonNode.get("choices").isEmpty()) {
-//                JsonNode messageNode = jsonNode.get("choices").get(0).get("message");
-//                if (messageNode != null && messageNode.has("content")) {
-//                    return new DeepSeekResponse(messageNode.get("content").asText());
-//                }
-//            }
-//            return new DeepSeekResponse("未找到有效回答");
-//        }
-//    }
 
 
     @GetMapping(value = "/deepseek", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -89,6 +38,7 @@ public class DeepseekController {
         ChatMessage userMessage = new ChatMessage();
         userMessage.setContent(prompt);
         userMessage.setUser(true);
+        userMessage.setCreatedAt(new Date());
         chatMessageMapper.insertChatMessage(userMessage);
 
         OkHttpClient client = new OkHttpClient.Builder()
@@ -138,6 +88,7 @@ public class DeepseekController {
                                         ChatMessage assistantMessage = new ChatMessage();
                                         assistantMessage.setContent(assistantReply.toString());
                                         assistantMessage.setUser(false);
+                                        assistantMessage.setCreatedAt(new Date());
                                         chatMessageMapper.insertChatMessage(assistantMessage);
                                         break;
                                     }
@@ -168,10 +119,17 @@ public class DeepseekController {
         });
     }
 
-
+    /**
+     * 根据日期查询聊天记录
+     * @param date 日期
+     * @return 聊天记录列表
+     */
     @GetMapping("/chat-history")
-    public List<ChatMessageDTO> getChatHistory() {
-        List<ChatMessage> chatMessages = chatMessageMapper.getAllChatMessages();
+    public List<ChatMessageDTO> getChatHistory(@RequestParam(required = false) String date) {
+        // 处理日期参数，如果为空则使用当前日期
+        Date targetDate = getTargetDate(date);
+        // 获取对应日期的聊天记录
+        List<ChatMessage> chatMessages = chatMessageMapper.getChatMessagesByDate(targetDate);
         List<ChatMessageDTO> chatMessageDTOS = new ArrayList<>();
         for (ChatMessage chatMessage : chatMessages) {
             chatMessageDTOS.add(new ChatMessageDTO(
@@ -183,4 +141,31 @@ public class DeepseekController {
         }
         return chatMessageDTOS;
     }
+
+    /**
+     * 查询历史聊天日期
+     */
+    @GetMapping("/chat-history-dates")
+    public List<Date> getDistinctChatDates() {
+        List<Date> date = chatMessageMapper.findDistinctCreatedDates();
+        for (Date d : date) {
+            System.out.println(d);
+        }
+        return chatMessageMapper.findDistinctCreatedDates();
+    }
+
+    private Date getTargetDate(String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (date != null && !date.isEmpty()) {
+                return sdf.parse(date);
+            } else {
+                return new Date();
+            }
+        } catch (ParseException e) {
+            // 处理日期格式错误，这里简单返回当前日期
+            return new Date();
+        }
+    }
+
 }
