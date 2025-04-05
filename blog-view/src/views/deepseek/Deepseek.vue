@@ -18,8 +18,20 @@
         </div>
       </div>
       <div class="input-container">
-        <input v-model="userInput" type="text" placeholder="输入你的问题" @keydown.enter="sendMessage" :disabled="isSending">
-        <button @click="sendMessage" :disabled="isSending" :class="{ 'disabled-btn': isSending }">发送</button>
+        <!-- 添加日期选择器 -->
+        <!-- <input type="date" v-model="selectedDate" @change="onDateChange" :picker-options="pickerOptions" :max="getTodayDate()"> -->
+        <el-date-picker
+          v-model="selectedDate"
+          type="date"
+          @change="onDateChange"
+          :picker-options="pickerOptions"
+          placeholder="选择日期"
+          :max="getTodayDate ()"
+          :clearable="false"
+          :disabled="isSending">
+        </el-date-picker>
+        <input v-model="userInput" type="text" placeholder="输入你的问题(请选择当天日期)" @keydown.enter="sendMessage" :disabled="isSending || !isToday(selectedDate)">
+        <button @click="sendMessage" :disabled="isSending || !isToday(selectedDate)" :class="{ 'disabled-btn': isSending || !isToday(selectedDate) }">发送</button>
       </div>
     </div>
   </div>
@@ -27,7 +39,7 @@
 
 <script>
 import MarkdownIt from 'markdown-it';
-
+import { MessageBox } from 'element-ui'; // 需先安装 element-ui
 export default {
   data() {
     return {
@@ -41,30 +53,90 @@ export default {
         linkify: true,     // 自动将 URL 转换为链接
         typographer: true  // 转换特殊符号（如 -- 转 em dash）
       }),
-      chatHistory: []
+      chatHistory: [],
+      selectedDate: this.formatDate(new Date()), // 默认当天 // 存储用户选择的日期，默认设置为当天
+      availableDates: [], // 存储后端返回的可用日期
+      formattedAvailableDates: [], // 格式化后的日期
+      pickerOptions: {
+        disabledDate: (time) => {
+          const currentDate = new Date();
+          const targetDate = new Date(time);
+          targetDate.setHours(0, 0, 0, 0);
+          currentDate.setHours(0, 0, 0, 0);
+
+          const isCurrentDate = targetDate.getTime() === currentDate.getTime();
+          const isAvailableDate = this.formattedAvailableDates.some((date) => {
+            const available = new Date(date);
+            available.setHours(0, 0, 0, 0);
+            return available.getTime() === targetDate.getTime();
+          });
+          return !isCurrentDate && !isAvailableDate;
+        }
+      }
     };
   },
   mounted() {
     this.getChatHistory();
+    this.fetchAvailableDates(); // 初始化时调用获取日期的接口
   },
   methods: {
-    async getChatHistory() {
+    formatIsoDate(isoString) {
+      const date = new Date(isoString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    async fetchAvailableDates() {
       try {
-        const response = await fetch('http://localhost:8090/chat-history');
+        const response = await fetch('http://localhost:8090/chat-history-dates');
         const data = await response.json();
+        this.availableDates = data;
+        // 格式化日期
+        this.formattedAvailableDates = data.map(isoDate => this.formatIsoDate(isoDate));
+        console.log(this.formattedAvailableDates);
+      } catch (error) {
+        console.error('获取可用日期失败:', error);
+      }
+    },
+    // -------------------
+    // 日期格式化工具函数
+    // -------------------
+    formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    async getChatHistory(date = null) {
+      try {
+        const useDate = date || this.formatDate(new Date());
+         // 构建带日期参数的URL
+        const url = `http://localhost:8090/chat-history?date=${encodeURIComponent(useDate)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data);
+        if(data.length == 0) {
+          this.chatMessages = [];
+          return;
+        }
         this.chatMessages = data;
-         // 使用 $nextTick 确保 DOM 更新后再执行回调函数
-      this.$nextTick(() => {
-          // 将聊天消息容器滚动到最底部，保证最新消息可见
-          this.$refs.chatMessages.scrollTop = this.$refs.chatMessages.scrollHeight;
-      });
-        //this.chatMessages.push(data);
+        // 使用 $nextTick 确保 DOM 更新后再执行回调函数
+        this.$nextTick(() => {
+            // 将聊天消息容器滚动到最底部，保证最新消息可见
+            this.$refs.chatMessages.scrollTop = this.$refs.chatMessages.scrollHeight;
+        });
       } catch (error) {
         console.error('获取聊天记录失败:', error);
       }
     },
     sendMessage() {
-      if (this.userInput.trim() === '') return;
+      if (this.userInput.trim() === '') {
+        MessageBox.alert('输入不能为空', '提示', {
+          type: 'warning'
+        });
+        return;
+      }
       if (this.isSending) return;
 
       this.isSending = true;
@@ -146,12 +218,15 @@ export default {
     },
 
     sanitizeHtml(html) {
-      // 简单 XSS 过滤（生产环境建议使用专业库如 DOMPurify）
       const temp = document.createElement('div');
       temp.innerHTML = html;
       
       // 允许的标签和属性
-      const allowedTags = ['p', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'br'];
+      const allowedTags = [
+        'p', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'br', 
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote',
+        'code', 'pre', 'img', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+      ];
       const allowedAttrs = ['href', 'title'];
 
       temp.querySelectorAll('*').forEach((el) => {
@@ -168,6 +243,24 @@ export default {
       });
 
       return temp.innerHTML;
+    },
+     // 根据选择的日期筛选聊天记录
+    onDateChange() {
+      this.getChatHistory( this.formatDate(this.selectedDate));
+    },
+    getTodayDate() {
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    isToday(date) {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      const selected = new Date(date);
+      selected.setHours(0, 0, 0, 0);
+      return selected.getTime() === currentDate.getTime();
     }
   }
 }
@@ -235,6 +328,18 @@ export default {
   
 }
 
+/* 代码块内的文字（关键） */
+::v-deep pre code {
+  white-space: pre-wrap;
+  color: #222 !important; /* 针对 <pre><code> 结构 */
+}
+
+/* 行内代码 */
+::v-deep code {
+   white-space: pre-wrap;
+  color: #222 !important;
+}
+
 .bot-message ul,
 .bot-message ol {
   padding-left: 20px; /* 缩进列表 */
@@ -261,13 +366,14 @@ export default {
   flex-shrink: 0;
 }
 
-.input-container input {
-  flex: 1;
+.input-container input[type="text"] {
+  flex: 2; 
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  margin-right: 10px;
   font-size: 1rem;
+  margin-right: 10px;
+  margin-left: 10px;
 }
 
 .input-container button {
