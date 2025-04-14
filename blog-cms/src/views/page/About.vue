@@ -19,7 +19,7 @@
 			</el-row>
 
 			<el-form-item label="正文" prop="content">
-				<mavon-editor v-model="form.content"/>
+				<mavon-editor v-model="form.content"  @imgAdd="imgAdd" ref="mdedit"/>
 			</el-form-item>
 
 			<el-form-item style="text-align: right;">
@@ -32,6 +32,7 @@
 <script>
 	import Breadcrumb from "@/components/Breadcrumb";
 	import {getAbout, updateAbout} from "@/api/about";
+	import {uploadPic} from '@/api/blog'
 
 	export default {
 		name: "About",
@@ -76,7 +77,20 @@
 						return this.msgError('请填写必要的表单')
 					}
 				})
-			}
+			},
+			// 上传图片接口 = 正文：将图片上传到服务器，返回地址替换到md中
+            imgAdd(pos, $file) {
+                var _this = this
+                var formdata = new FormData();
+                formdata.append('image', $file);
+                uploadPic(formdata).then((response) => {
+                    // 第二步.将返回的url替换到文本原位置![...](0) -> ![...](url)
+                    if (response.code === 200) {
+                        var url = response.msg;
+                        _this.$refs.mdedit.$img2Url(pos,url)
+                    }
+                })
+            },
 		}
 	}
 </script>

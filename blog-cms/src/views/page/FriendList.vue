@@ -48,7 +48,7 @@
 		<!--友链页面信息-->
 		<el-form label-position="top">
 			<el-form-item label="友链页面信息">
-				<mavon-editor v-model="infoForm.content"/>
+				<mavon-editor v-model="infoForm.content" @imgAdd="imgAdd" ref="mdedit"/>
 			</el-form-item>
 			<el-form-item style="text-align: right;">
 				<el-button type="primary" icon="el-icon-check" @click="updateContent">保存</el-button>
@@ -117,6 +117,7 @@
 		getFriendsByQuery, updatePublished, saveFriend, updateFriend,
 		deleteFriendById, getFriendInfo, updateContent, updateCommentEnabled
 	} from "@/api/friend";
+	import {uploadPic} from '@/api/blog';
 
 	export default {
 		name: "FriendList",
@@ -235,7 +236,20 @@
 						})
 					}
 				})
-			}
+			},
+			// 上传图片接口 = 正文：将图片上传到服务器，返回地址替换到md中
+            imgAdd(pos, $file) {
+                var _this = this
+                var formdata = new FormData();
+                formdata.append('image', $file);
+                uploadPic(formdata).then((response) => {
+                    // 第二步.将返回的url替换到文本原位置![...](0) -> ![...](url)
+                    if (response.code === 200) {
+                        var url = response.msg;
+                        _this.$refs.mdedit.$img2Url(pos,url)
+                    }
+                })
+            },
 		}
 	}
 </script>
